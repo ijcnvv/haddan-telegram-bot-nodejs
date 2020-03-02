@@ -5,7 +5,7 @@ const fetchTelegramUpdates = require("./modules/telegram");
 
 const app = express();
 const PORT = config.get("port") || 3000;
-const telegramJob = new CronJob("*/10 * * * * *", fetchTelegramUpdates);
+const telegramJob = new CronJob("*/8 * * * * *", fetchTelegramUpdates);
 
 telegramJob.start();
 

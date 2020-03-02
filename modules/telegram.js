@@ -1,7 +1,7 @@
 const config = require("config");
 const _ = require("lodash");
 const makeRequest = require("./axios");
-const connection = require("./db");
+const { dbGetLastUpdateId, dbSetLastUpdateId } = require("./db");
 const {
   startHandler,
   cbQueryHandler,
@@ -13,18 +13,6 @@ const {
 
 const TOKEN = config.get("telegram_token") || "";
 const URL = `https://api.telegram.org/${TOKEN}`;
-
-const getLastUpdateId = async () => {
-  const [rows] = await connection.query(
-    "SELECT `id` from `telegram_bot` limit 1"
-  );
-
-  return _.get(rows, [0, "id"]) || null;
-};
-
-const setLastUpdateId = id => {
-  return connection.execute("UPDATE `telegram_bot` set `id` = ?", [+id]);
-};
 
 const handleUpdates = (data, offcet) => {
   if (!_.size(data)) return;
@@ -50,11 +38,11 @@ const handleUpdates = (data, offcet) => {
     if (/^\/off/i.test(text)) return switchHandler(chatId, false);
   });
 
-  setLastUpdateId(lastUpdateId);
+  dbSetLastUpdateId(lastUpdateId);
 };
 
 const getLastUpdates = async () => {
-  const offset = await getLastUpdateId();
+  const offset = await dbGetLastUpdateId();
   const params = { offset };
 
   return makeRequest.get(`${URL}/getUpdates`, { params }).then(({ data }) => {
