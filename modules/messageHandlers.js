@@ -1,4 +1,3 @@
-const config = require("config");
 const _ = require("lodash");
 const makeRequest = require("./axios");
 const {
@@ -10,9 +9,6 @@ const {
   dbSwitchNotification
 } = require("./db");
 
-const TOKEN = config.get("telegram_token") || "";
-const URL = `https://api.telegram.org/${TOKEN}`;
-
 const sendMessage = ({ chat_id, text, disable_notification = false }) => {
   const params = {
     chat_id,
@@ -20,7 +16,7 @@ const sendMessage = ({ chat_id, text, disable_notification = false }) => {
     disable_notification,
     parse_mode: "HTML"
   };
-  return makeRequest.get(`${URL}/sendMessage`, { params });
+  return makeRequest.get("/sendMessage", { params });
 };
 
 const startHandler = chat_id => {

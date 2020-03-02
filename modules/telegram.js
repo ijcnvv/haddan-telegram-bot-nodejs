@@ -1,4 +1,3 @@
-const config = require("config");
 const _ = require("lodash");
 const makeRequest = require("./axios");
 const { dbGetLastUpdateId, dbSetLastUpdateId } = require("./db");
@@ -10,9 +9,6 @@ const {
   removeHandler,
   switchHandler
 } = require("./messageHandlers");
-
-const TOKEN = config.get("telegram_token") || "";
-const URL = `https://api.telegram.org/${TOKEN}`;
 
 const handleUpdates = (data, offcet) => {
   if (!_.size(data)) return;
@@ -45,7 +41,7 @@ const getLastUpdates = async () => {
   const offset = await dbGetLastUpdateId();
   const params = { offset };
 
-  return makeRequest.get(`${URL}/getUpdates`, { params }).then(({ data }) => {
+  return makeRequest.get("/getUpdates", { params }).then(({ data }) => {
     const { result } = data;
     return handleUpdates(result, offset);
   });
