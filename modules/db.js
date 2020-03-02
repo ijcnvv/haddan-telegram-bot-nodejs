@@ -23,6 +23,15 @@ const dbGetLastUpdateId = () => {
     .then(([response]) => _.get(response, [0, "id"], null));
 };
 
+const dbIsCaptchaNotEmpty = chatId => {
+  return connection
+    .execute(
+      "select `hash` from `common` where `chatid` = ? and `captcha` = 1",
+      [chatId]
+    )
+    .then(([response]) => response);
+};
+
 const dbUpdateAnswer = (value, hash) => {
   return connection.execute(
     "update `common` set `value` = ?, `captcha` = 0, `image` = '' where `hash` = ?",
@@ -80,5 +89,6 @@ module.exports = {
   dbIsHashAllowed,
   dbAddChatIdToUser,
   dbClearChatId,
-  dbSwitchNotification
+  dbSwitchNotification,
+  dbIsCaptchaNotEmpty
 };

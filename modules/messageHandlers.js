@@ -6,7 +6,8 @@ const {
   dbIsHashAllowed,
   dbAddChatIdToUser,
   dbClearChatId,
-  dbSwitchNotification
+  dbSwitchNotification,
+  dbIsCaptchaNotEmpty
 } = require("./db");
 
 const sendMessage = ({ chat_id, text, disable_notification = false }) => {
@@ -24,13 +25,16 @@ const startHandler = chat_id => {
   return sendMessage({ chat_id, text });
 };
 
-const cbQueryHandler = query => {
+const cbQueryHandler = async query => {
   const data = _.get(query, "data") || "";
   const chat_id = _.get(query, "message.chat.id");
   const reg = /^\/answer\s+(.+?)\s+(.+?)$/i;
   const res = reg.exec(data);
 
   if (!res) return false;
+
+  const response = await dbIsCaptchaNotEmpty(chat_id);
+  if (!_.size(response)) return false;
 
   const [, answer, userId] = res;
   const text = `Принят ответ ${answer}`;

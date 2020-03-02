@@ -10,40 +10,41 @@ const {
   switchHandler
 } = require("./messageHandlers");
 
-const handleUpdates = (data, offcet) => {
-  if (!_.size(data)) return;
+const handleUpdates = async (data, offcet) => {
+  if (!_.size(data)) return false;
 
   let lastUpdateId = offcet;
 
-  data.forEach(item => {
+  for (let i = 0, len = data.length; i < len; i += 1) {
+    const item = data[i];
     const updateId = _.get(item, "update_id") || null;
     const chatId = _.get(item, "message.chat.id") || null;
     const text = _.get(item, "message.text") || "";
     const cbQuery = _.get(item, "callback_query") || null;
 
-    if (!updateId || +updateId <= +offcet) return false;
+    if (!updateId || +updateId <= +offcet) continue;
+
+    if (cbQuery) await cbQueryHandler(cbQuery);
+    if (/^\/start/i.test(text)) await startHandler(chatId);
+    if (/^\/list/i.test(text)) await listHandler(chatId);
+    if (/^\/add/i.test(text)) await addHandler(chatId, text);
+    if (/^\/remove/i.test(text)) await removeHandler(chatId, text);
+    if (/^\/on/i.test(text)) await switchHandler(chatId, true);
+    if (/^\/off/i.test(text)) await switchHandler(chatId, false);
 
     lastUpdateId = updateId;
+  }
 
-    if (cbQuery) return cbQueryHandler(cbQuery);
-    if (/^\/start/i.test(text)) return startHandler(chatId);
-    if (/^\/list/i.test(text)) return listHandler(chatId);
-    if (/^\/add/i.test(text)) return addHandler(chatId, text);
-    if (/^\/remove/i.test(text)) return removeHandler(chatId, text);
-    if (/^\/on/i.test(text)) return switchHandler(chatId, true);
-    if (/^\/off/i.test(text)) return switchHandler(chatId, false);
-  });
-
-  dbSetLastUpdateId(lastUpdateId);
+  return dbSetLastUpdateId(lastUpdateId);
 };
 
 const getLastUpdates = async () => {
-  const offset = await dbGetLastUpdateId();
-  const params = { offset };
+  const lastUpdateId = await dbGetLastUpdateId();
+  const params = { offset: +lastUpdateId + 1 };
 
   return makeRequest.get("/getUpdates", { params }).then(({ data }) => {
     const { result } = data;
-    return handleUpdates(result, offset);
+    return handleUpdates(result, lastUpdateId);
   });
 };
 
