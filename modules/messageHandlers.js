@@ -7,7 +7,7 @@ const {
   dbAddChatIdToUser,
   dbClearChatId,
   dbSwitchNotification,
-  dbIsCaptchaNotEmpty
+  dbIsCaptchaNotEmpty,
 } = require("./db");
 
 const sendMessage = ({ chat_id, text, disable_notification = false }) => {
@@ -15,20 +15,20 @@ const sendMessage = ({ chat_id, text, disable_notification = false }) => {
     chat_id,
     text,
     disable_notification,
-    parse_mode: "HTML"
+    parse_mode: "HTML",
   };
   return makeRequest.get("/sendMessage", { params });
 };
 
-const startHandler = chat_id => {
+const startHandler = (chat_id) => {
   const text = `Добро пожаловать! Ниже представлен список команд для управления оповещениями от капч в игре Haddan.\n\n/add <b>xxxxx</b> - привязка персонажа к телеграму, где <b>ххххх</b> уникальный идентификатор, сгенерированный ботом, посмотреть его можно в настройках, во вкладке капча. Привязать можно несколько персонажей, достаточно несколько раз воспользоваться этой командой\n/remove <b>xxxxx</b> - отвязать id от телеграм бота, чтобы при включении оповещений, от этого персонажа ничего не приходило\n\nУникальный идентификатор указывайте <b>через пробел</b>\n\n/list - список привязанных <b>id</b>\n/on - включить оповещения\n/off - отключить оповещения.`;
   return sendMessage({ chat_id, text });
 };
 
-const cbQueryHandler = async query => {
+const cbQueryHandler = async (query) => {
   const data = _.get(query, "data") || "";
   const chat_id = _.get(query, "message.chat.id");
-  const reg = /^\/answer\s+(.+?)\s+(.+?)$/i;
+  const reg = /^\/answer\s+(.+)\s+(.+?)$/i;
   const res = reg.exec(data);
 
   if (!res) return false;
@@ -44,8 +44,8 @@ const cbQueryHandler = async query => {
   );
 };
 
-const listHandler = chat_id => {
-  return dbGetIdsList(chat_id).then(rows => {
+const listHandler = (chat_id) => {
+  return dbGetIdsList(chat_id).then((rows) => {
     let text = "Вы не привязали ни одного <b>id</b>";
     if (!_.size(rows)) return sendMessage({ chat_id, text });
 
@@ -130,5 +130,5 @@ module.exports = {
   listHandler,
   addHandler,
   removeHandler,
-  switchHandler
+  switchHandler,
 };
