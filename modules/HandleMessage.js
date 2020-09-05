@@ -12,7 +12,7 @@ const onHandler = async (msg, sendMessage) => {
   const affectedRows = await DB.dbSwitchNotification(fromId, 1);
   let text = "Оповещение о капчах включено, отключить /off";
 
-  if (affectedRows === 0) {
+  if (!affectedRows) {
     text = `Вы не привязали <b>id</b> бота к телеграму.\nВоспользуйтесь командой: /add <b>ххххх</b>\nгде <b>ххххх</b> - уникальный идентификатор, сгенерированный ботом`;
   }
 
@@ -24,26 +24,26 @@ const offHandler = async (msg, sendMessage) => {
   const affectedRows = await DB.dbSwitchNotification(fromId, 0);
   let text = "Оповещение о капчах отключено, включить /on";
 
-  if (affectedRows === 0) {
+  if (!affectedRows) {
     text = `Вы не привязали <b>id</b> бота к телеграму.\nВоспользуйтесь командой: /add <b>ххххх</b>\nгде <b>ххххх</b> - уникальный идентификатор, сгенерированный ботом`;
   }
 
   return sendMessage(fromId, text);
 };
 
-const listHandler = (msg, sendMessage) => {
+const listHandler = async (msg, sendMessage) => {
   const fromId = msg.from.id;
-  return DB.dbGetIdsList(fromId).then((rows) => {
-    let text = "Вы не привязали ни одного <b>id</b>";
-    if (!_.size(rows)) return sendMessage(fromId, text);
+  const rows = await DB.dbGetIdsList(fromId);
+  let text = "Вы не привязали ни одного <b>id</b>";
 
-    text = rows.reduce(
-      (acc, row) => `${acc}<b>${row.hash}</b>\n`,
-      "Список привязанных id:\n"
-    );
+  if (!_.size(rows)) return sendMessage(fromId, text);
 
-    return sendMessage(fromId, text);
-  });
+  text = rows.reduce(
+    (acc, row) => `${acc}<b>${row.hash}</b>\n`,
+    "Список привязанных id:\n"
+  );
+
+  return sendMessage(fromId, text);
 };
 
 const addHandler = async (msg, match, sendMessage) => {
@@ -76,9 +76,8 @@ const addHandler = async (msg, match, sendMessage) => {
 
   text = `id <b>${hash}</b> успешно привязан к вашему профилю, теперь капчи из игры будут отправляться сюда`;
 
-  return DB.dbAddChatIdToUser(fromId, hash).then(() =>
-    sendMessage(fromId, text)
-  );
+  await DB.dbAddChatIdToUser(fromId, hash);
+  return sendMessage(fromId, text);
 };
 
 const removeHandler = async (msg, match, sendMessage) => {
@@ -94,7 +93,7 @@ const removeHandler = async (msg, match, sendMessage) => {
   const affectedRows = await DB.dbClearChatId(fromId, hash);
   text = `id <b>${hash}</b> отвязан от телеграм бота`;
 
-  if (affectedRows === 0) {
+  if (!affectedRows) {
     text = `что-то пошло не так, попробуйте снова, либо проверьте подключенные <b>id</b> командой /list`;
   }
 
@@ -115,9 +114,8 @@ const btnHandler = async (msg, sendMessage) => {
   const [, answer, userId] = res;
   const text = `Принят ответ ${answer}`;
 
-  return DB.dbUpdateAnswer(answer, userId).then(() =>
-    sendMessage(fromId, text)
-  );
+  await DB.dbUpdateAnswer(answer, userId);
+  return sendMessage(fromId, text);
 };
 
 module.exports = {

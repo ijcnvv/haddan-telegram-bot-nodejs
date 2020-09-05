@@ -17,12 +17,6 @@ const connection = mysql.createPool({
   queueLimit: 0,
 });
 
-const dbGetLastUpdateId = () => {
-  return connection
-    .query("SELECT `id` from `telegram_bot` limit 1")
-    .then(([response]) => _.get(response, [0, "id"], null));
-};
-
 const dbIsCaptchaNotEmpty = (chatId) => {
   return connection
     .execute(
@@ -39,10 +33,6 @@ const dbUpdateAnswer = (value, hash) => {
   );
 };
 
-const dbSetLastUpdateId = (id) => {
-  return connection.execute("update `telegram_bot` set `id` = ?", [+id]);
-};
-
 const dbGetIdsList = (chatId) => {
   return connection
     .execute("select `hash` from `common` where `chatid` = ?", [chatId])
@@ -51,7 +41,9 @@ const dbGetIdsList = (chatId) => {
 
 const dbIsHashAllowed = (hash) => {
   return connection
-    .execute("select hash, chatid from common where hash = ? limit 1", [hash])
+    .execute("select `hash`, `chatid` from `common` where `hash` = ? limit 1", [
+      hash,
+    ])
     .then(([response]) => response);
 };
 
@@ -82,8 +74,6 @@ const dbSwitchNotification = (chatId, value) => {
 
 module.exports = {
   dbUpdateAnswer,
-  dbGetLastUpdateId,
-  dbSetLastUpdateId,
   dbGetIdsList,
   dbIsHashAllowed,
   dbAddChatIdToUser,
