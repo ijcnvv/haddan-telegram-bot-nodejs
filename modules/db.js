@@ -33,6 +33,13 @@ const dbUpdateAnswer = (value, hash) => {
   );
 };
 
+const dbUpdateAnswerByChatId = (value, id) => {
+  return connection.execute(
+    "update `common` set `value` = ?, `captcha` = 0, `image` = '' where `chatid` = ?",
+    [value, id]
+  );
+};
+
 const dbGetIdsList = (chatId) => {
   return connection
     .execute("select `hash` from `common` where `chatid` = ?", [chatId])
@@ -80,4 +87,5 @@ module.exports = {
   dbClearChatId,
   dbSwitchNotification,
   dbIsCaptchaNotEmpty,
+  dbUpdateAnswerByChatId,
 };

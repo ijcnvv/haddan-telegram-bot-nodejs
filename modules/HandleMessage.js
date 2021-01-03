@@ -118,6 +118,19 @@ const btnHandler = async (msg, sendMessage) => {
   return sendMessage(fromId, text);
 };
 
+const answerHandler = async (msg, sendMessage) => {
+  console.log(msg);
+  const fromId = msg.from.id;
+  const answer = msg.text;
+  const text = `Принят ответ ${answer}`;
+  const response = await DB.dbIsCaptchaNotEmpty(fromId);
+  if (!_.size(response)) return false;
+
+  await DB.dbUpdateAnswerByChatId(answer, fromId);
+
+  return sendMessage(fromId, text);
+};
+
 module.exports = {
   startHandler,
   onHandler,
@@ -126,4 +139,5 @@ module.exports = {
   addHandler,
   removeHandler,
   btnHandler,
+  answerHandler,
 };

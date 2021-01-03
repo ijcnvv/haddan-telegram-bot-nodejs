@@ -18,4 +18,5 @@ bot.onText(/^\/add(.*)/, (msg, match) =>
 bot.onText(/^\/remove(.*)/, (msg, match) =>
   MH.removeHandler(msg, match, sendMessage)
 );
+bot.onText(/^\d+$/, (msg) => MH.answerHandler(msg, sendMessage));
 bot.on("callback_query", (msg) => MH.btnHandler(msg, sendMessage));
