@@ -119,7 +119,6 @@ const btnHandler = async (msg, sendMessage) => {
 };
 
 const answerHandler = async (msg, sendMessage) => {
-  console.log(msg);
   const fromId = msg.from.id;
   const answer = msg.text;
   const text = `Принят ответ ${answer}`;
