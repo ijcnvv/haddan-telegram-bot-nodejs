@@ -1,33 +1,16 @@
 const _ = require("lodash");
 const DB = require("./db");
 
+const addText = `/add <b>xxxxx</b> - привязка персонажа к телеграму, где <b>ххххх</b> id - персонажа.`;
+const removeText = `/remove <b>xxxxx</b> - отвязать id от телеграм бота, чтобы при включении оповещений, от этого персонажа ничего не приходило.`;
+
 const startHandler = (msg, sendMessage) => {
   const fromId = msg.from.id;
-  const text = `Добро пожаловать! Ниже представлен список команд для управления оповещениями от капч в игре Haddan.\n\n/add <b>xxxxx</b> - привязка персонажа к телеграму, где <b>ххххх</b> уникальный идентификатор, сгенерированный ботом, посмотреть его можно в настройках, во вкладке капча. Привязать можно несколько персонажей, достаточно несколько раз воспользоваться этой командой\n/remove <b>xxxxx</b> - отвязать id от телеграм бота, чтобы при включении оповещений, от этого персонажа ничего не приходило\n\nУникальный идентификатор указывайте <b>через пробел</b>\n\n/list - список привязанных <b>id</b>\n/on - включить оповещения\n/off - отключить оповещения.`;
-  return sendMessage(fromId, text);
-};
-
-const onHandler = async (msg, sendMessage) => {
-  const fromId = msg.from.id;
-  const affectedRows = await DB.dbSwitchNotification(fromId, 1);
-  let text = "Оповещение о капчах включено, отключить /off";
-
-  if (!affectedRows) {
-    text = `Вы не привязали <b>id</b> бота к телеграму.\nВоспользуйтесь командой: /add <b>ххххх</b>\nгде <b>ххххх</b> - уникальный идентификатор, сгенерированный ботом`;
-  }
-
-  return sendMessage(fromId, text);
-};
-
-const offHandler = async (msg, sendMessage) => {
-  const fromId = msg.from.id;
-  const affectedRows = await DB.dbSwitchNotification(fromId, 0);
-  let text = "Оповещение о капчах отключено, включить /on";
-
-  if (!affectedRows) {
-    text = `Вы не привязали <b>id</b> бота к телеграму.\nВоспользуйтесь командой: /add <b>ххххх</b>\nгде <b>ххххх</b> - уникальный идентификатор, сгенерированный ботом`;
-  }
-
+  const text = `Добро пожаловать! Ниже представлен список команд для управления оповещениями от капч в игре Haddan.\n
+${addText} Привязать можно несколько персонажей, достаточно несколько раз воспользоваться этой командой\n
+${removeText}\n
+ID персонажа указывайте <b>через пробел</b>, ID инкорнаций необходимо привязывать отдельно.\n
+/list - список привязанных <b>id</b>`;
   return sendMessage(fromId, text);
 };
 
@@ -39,7 +22,7 @@ const listHandler = async (msg, sendMessage) => {
   if (!_.size(rows)) return sendMessage(fromId, text);
 
   text = rows.reduce(
-    (acc, row) => `${acc}<b>${row.hash}</b>\n`,
+    (acc, row) => `${acc}<b>${row.player_id}</b>\n`,
     "Список привязанных id:\n"
   );
 
@@ -48,35 +31,35 @@ const listHandler = async (msg, sendMessage) => {
 
 const addHandler = async (msg, match, sendMessage) => {
   const fromId = msg.from.id;
-  const regexp = /^\s+([A-z\d]+)$/i;
+  const regexp = /^\s+(\d+)$/i;
   const result = regexp.exec(match[1]);
-  let text = `/add <b>xxxxx</b> - привязка персонажа к телеграму, где <b>ххххх</b> уникальный идентификатор, сгенерированный ботом`;
+  let text = addText;
 
   if (!result) return sendMessage(fromId, text);
 
-  const [, hash] = result;
-  const rows = await DB.dbIsHashAllowed(hash);
+  const [, playerId] = result;
+  const rows = await DB.dbIsHashAllowed(playerId);
 
   if (!_.size(rows)) {
-    text = `id <b>${hash}</b> не существует`;
+    text = `id <b>${playerId}</b> не существует`;
     return sendMessage(fromId, text);
   }
 
   const chatid = _.get(rows, [0, "chatid"]);
 
   if (+chatid === +fromId) {
-    text = `id <b>${hash}</b> уже привязан`;
+    text = `id <b>${playerId}</b> уже привязан`;
     return sendMessage(fromId, text);
   }
 
   if (+chatid !== 0) {
-    text = `id <b>${hash}</b> уже привязан к другомму аккаунту, если он ваш, напишите @ijcnvv`;
+    text = `id <b>${playerId}</b> уже привязан к другомму аккаунту, если он ваш, напишите @ijcnvv`;
     return sendMessage(fromId, text);
   }
 
-  text = `id <b>${hash}</b> успешно привязан к вашему профилю, теперь капчи из игры будут отправляться сюда`;
+  text = `id <b>${playerId}</b> успешно привязан к вашему профилю`;
 
-  await DB.dbAddChatIdToUser(fromId, hash);
+  await DB.dbAddChatIdToUser(fromId, playerId);
   return sendMessage(fromId, text);
 };
 
@@ -85,13 +68,13 @@ const removeHandler = async (msg, match, sendMessage) => {
 
   const regexp = /^\s+([A-z\d]+)$/i;
   const result = regexp.exec(match[1]);
-  let text = `/remove <b>xxxxx</b> - отвязать id от телеграм бота, чтобы при включении оповещений, от этого персонажа ничего не приходило`;
+  let text = removeText;
 
   if (!result) return sendMessage(fromId, text);
 
-  const [, hash] = result;
-  const affectedRows = await DB.dbClearChatId(fromId, hash);
-  text = `id <b>${hash}</b> отвязан от телеграм бота`;
+  const [, playerId] = result;
+  const affectedRows = await DB.dbClearChatId(fromId, playerId);
+  text = `id <b>${playerId}</b> отвязан от телеграм бота`;
 
   if (!affectedRows) {
     text = `что-то пошло не так, попробуйте снова, либо проверьте подключенные <b>id</b> командой /list`;
@@ -111,10 +94,10 @@ const btnHandler = async (msg, sendMessage) => {
   const response = await DB.dbIsCaptchaNotEmpty(fromId);
   if (!_.size(response)) return false;
 
-  const [, answer, userId] = res;
+  const [, answer, playerId] = res;
   const text = `Принят ответ ${answer}`;
 
-  await DB.dbUpdateAnswer(answer, userId);
+  await DB.dbUpdateAnswer(answer, playerId);
   return sendMessage(fromId, text);
 };
 
@@ -132,8 +115,6 @@ const answerHandler = async (msg, sendMessage) => {
 
 module.exports = {
   startHandler,
-  onHandler,
-  offHandler,
   listHandler,
   addHandler,
   removeHandler,

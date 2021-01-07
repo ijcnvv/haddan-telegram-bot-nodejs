@@ -9,8 +9,6 @@ const sendMessage = (id, text) => {
 };
 
 bot.onText(/^\/start/, (msg) => MH.startHandler(msg, sendMessage));
-bot.onText(/^\/on/, (msg) => MH.onHandler(msg, sendMessage));
-bot.onText(/^\/off/, (msg) => MH.offHandler(msg, sendMessage));
 bot.onText(/^\/list/, (msg) => MH.listHandler(msg, sendMessage));
 bot.onText(/^\/add(.*)/, (msg, match) =>
   MH.addHandler(msg, match, sendMessage)

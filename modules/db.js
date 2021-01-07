@@ -26,10 +26,10 @@ const dbIsCaptchaNotEmpty = (chatId) => {
     .then(([response]) => response);
 };
 
-const dbUpdateAnswer = (value, hash) => {
+const dbUpdateAnswer = (value, playerId) => {
   return connection.execute(
-    "update `common` set `value` = ?, `captcha` = 0, `image` = '' where `hash` = ?",
-    [value, hash]
+    "update `common` set `value` = ?, `captcha` = 0, `image` = '' where `player_id` = ?",
+    [value, playerId]
   );
 };
 
@@ -42,40 +42,32 @@ const dbUpdateAnswerByChatId = (value, id) => {
 
 const dbGetIdsList = (chatId) => {
   return connection
-    .execute("select `hash` from `common` where `chatid` = ?", [chatId])
+    .execute("select `player_id` from `common` where `chatid` = ?", [chatId])
     .then(([response]) => response);
 };
 
-const dbIsHashAllowed = (hash) => {
+const dbIsHashAllowed = (playerId) => {
   return connection
-    .execute("select `hash`, `chatid` from `common` where `hash` = ? limit 1", [
-      hash,
-    ])
+    .execute(
+      "select `player_id`, `chatid` from `common` where `player_id` = ? limit 1",
+      [playerId]
+    )
     .then(([response]) => response);
 };
 
-const dbAddChatIdToUser = (chatId, hash) => {
+const dbAddChatIdToUser = (chatId, playerId) => {
   return connection.execute(
-    "update `common` set `chatid` = ? where `hash` = ?",
-    [chatId, hash]
+    "update `common` set `chatid` = ? where `player_id` = ?",
+    [chatId, playerId]
   );
 };
 
-const dbClearChatId = (chatId, hash) => {
+const dbClearChatId = (chatId, playerId) => {
   return connection
     .execute(
-      "update `common` set `chatid` = 0 where `chatid` = ? and `hash` = ?",
-      [chatId, hash]
+      "update `common` set `chatid` = 0 where `chatid` = ? and `player_id` = ?",
+      [chatId, playerId]
     )
-    .then(([response]) => _.get(response, "affectedRows", 0));
-};
-
-const dbSwitchNotification = (chatId, value) => {
-  return connection
-    .execute("update `common` set `tm_on` = ? where `chatid` = ?", [
-      value,
-      chatId,
-    ])
     .then(([response]) => _.get(response, "affectedRows", 0));
 };
 
@@ -85,7 +77,6 @@ module.exports = {
   dbIsHashAllowed,
   dbAddChatIdToUser,
   dbClearChatId,
-  dbSwitchNotification,
   dbIsCaptchaNotEmpty,
   dbUpdateAnswerByChatId,
 };
