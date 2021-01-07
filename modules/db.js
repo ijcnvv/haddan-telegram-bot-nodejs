@@ -20,7 +20,7 @@ const connection = mysql.createPool({
 const dbIsCaptchaNotEmpty = (chatId) => {
   return connection
     .execute(
-      "select `hash` from `common` where `chatid` = ? and `captcha` = 1",
+      "select `player_id` from `common` where `chatid` = ? and `captcha` = 1",
       [chatId]
     )
     .then(([response]) => response);
