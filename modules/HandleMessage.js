@@ -1,5 +1,5 @@
-const _ = require("lodash");
-const DB = require("./db");
+const _ = require('lodash');
+const DB = require('./db');
 
 const addText = `/add <b>xxxxx</b> - привязка персонажа к телеграму, где <b>ххххх</b> id - персонажа.`;
 const removeText = `/remove <b>xxxxx</b> - отвязать id от телеграм бота, чтобы при включении оповещений, от этого персонажа ничего не приходило.`;
@@ -17,14 +17,11 @@ ID персонажа указывайте <b>через пробел</b>, ID и
 const listHandler = async (msg, sendMessage) => {
   const fromId = msg.from.id;
   const rows = await DB.dbGetIdsList(fromId);
-  let text = "Вы не привязали ни одного <b>id</b>";
+  let text = 'Вы не привязали ни одного <b>id</b>';
 
   if (!_.size(rows)) return sendMessage(fromId, text);
 
-  text = rows.reduce(
-    (acc, row) => `${acc}<b>${row.player_id}</b>\n`,
-    "Список привязанных id:\n"
-  );
+  text = rows.reduce((acc, row) => `${acc}<b>${row.player_id}</b>\n`, 'Список привязанных id:\n');
 
   return sendMessage(fromId, text);
 };
@@ -45,7 +42,7 @@ const addHandler = async (msg, match, sendMessage) => {
     return sendMessage(fromId, text);
   }
 
-  const chatid = _.get(rows, [0, "chatid"]);
+  const chatid = _.get(rows, [0, 'chatid']);
 
   if (+chatid === +fromId) {
     text = `id <b>${playerId}</b> уже привязан`;
@@ -84,18 +81,17 @@ const removeHandler = async (msg, match, sendMessage) => {
 };
 
 const btnHandler = async (msg, sendMessage) => {
-  const data = _.get(msg, "data") || "";
+  const data = _.get(msg, 'data') || '';
   const fromId = msg.from.id;
   const reg = /^\/answer\s+(.+)\s+(.+?)$/i;
   const res = reg.exec(data);
 
   if (!res) return false;
 
-  const response = await DB.dbIsCaptchaNotEmpty(fromId);
-  if (!_.size(response)) return false;
-
   const [, answer, playerId] = res;
   const text = `Принят ответ ${answer}`;
+  const response = await DB.dbIsCaptchaNotEmptyByPlayerId(playerId);
+  if (!_.size(response)) return false;
 
   await DB.dbUpdateAnswer(answer, playerId);
   return sendMessage(fromId, text);
@@ -105,11 +101,11 @@ const answerHandler = async (msg, sendMessage) => {
   const fromId = msg.from.id;
   const answer = msg.text;
   const text = `Принят ответ ${answer}`;
-  const response = await DB.dbIsCaptchaNotEmpty(fromId);
+  const response = await DB.dbIsCaptchaNotEmptyByChatId(fromId);
+
   if (!_.size(response)) return false;
 
   await DB.dbUpdateAnswerByChatId(answer, fromId);
-
   return sendMessage(fromId, text);
 };
 
