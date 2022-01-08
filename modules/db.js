@@ -25,7 +25,10 @@ const dbIsCaptchaNotEmptyByPlayerId = (playerId) => {
 
 const dbIsCaptchaNotEmptyByChatId = (chatId) => {
   return connection
-    .execute('select `player_id` from `common` where `chatid` = ? and `captcha` = 1', [chatId])
+    .execute(
+      'select `player_id` from `common` inner join `user` on `common`.`user_id` = `user`.`id` where `user`.`tg_id` = ? and `common`.`captcha` = 1',
+      [chatId]
+    )
     .then(([response]) => response);
 };
 
@@ -37,31 +40,37 @@ const dbUpdateAnswer = (value, playerId) => {
 };
 
 const dbUpdateAnswerByChatId = (value, id) => {
-  return connection.execute("update `common` set `value` = ?, `captcha` = 0, `image` = '' where `chatid` = ?", [
-    value,
-    id,
-  ]);
+  return connection.execute(
+    "update `common` inner join `user` on `common`.`user_id` = `user`.`id` set `common`.`value` = ?, `common`.`captcha` = 0, `common`.`image` = '' where `user`.`tg_id` = ?",
+    [value, id]
+  );
 };
 
 const dbGetIdsList = (chatId) => {
   return connection
-    .execute('select `player_id` from `common` where `chatid` = ?', [chatId])
+    .execute(
+      'select `player_id` from `common` inner join `user` on `common`.`user_id` = `user`.`id` where `user`.`tg_id` = ?',
+      [chatId]
+    )
     .then(([response]) => response);
 };
 
 const dbIsHashAllowed = (playerId) => {
   return connection
-    .execute('select `player_id`, `chatid` from `common` where `player_id` = ? limit 1', [playerId])
+    .execute('select `player_id` from `common` where `player_id` = ? limit 1', [playerId])
     .then(([response]) => response);
 };
 
 const dbAddChatIdToUser = (chatId, playerId) => {
-  return connection.execute('update `common` set `chatid` = ? where `player_id` = ?', [chatId, playerId]);
+  return connection.execute(
+    'update `common` inner join `user` on `common`.`user_id` = `user`.`id` set `user`.`tg_id` = ? where `common`.`player_id` = ?',
+    [chatId, playerId]
+  );
 };
 
-const dbClearChatId = (chatId, playerId) => {
+const dbClearChatId = (chatId) => {
   return connection
-    .execute('update `common` set `chatid` = ? where `chatid` = ? and `player_id` = ?', [0, chatId, playerId])
+    .execute('update `user` set `tg_id` = 0 where `tg_id` = ?', [chatId])
     .then(([response]) => _.get(response, 'affectedRows', 0));
 };
 
