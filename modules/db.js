@@ -49,7 +49,7 @@ const dbUpdateAnswerByChatId = (value, id) => {
 const dbGetIdsList = (chatId) => {
   return connection
     .execute(
-      'select `player_id` from `common` inner join `user` on `common`.`user_id` = `user`.`id` where `user`.`tg_id` = ?',
+      'select `player_id` from `common` inner join `user` on `common`.`user_id` = `user`.`id` where `user`.`tg_id` = ? and `common`.`main_id` is NULL',
       [chatId]
     )
     .then(([response]) => response);
