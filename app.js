@@ -9,8 +9,5 @@ const sendMessage = (id, text) => {
 };
 
 bot.onText(/^\/start/, (msg) => MH.startHandler(msg, sendMessage));
-bot.onText(/^\/list/, (msg) => MH.listHandler(msg, sendMessage));
-bot.onText(/^\/add(.*)/, (msg, match) => MH.addHandler(msg, match, sendMessage));
-bot.onText(/^\/remove/, (msg) => MH.removeHandler(msg, sendMessage));
 bot.onText(/^\d+$/, (msg) => MH.answerHandler(msg, sendMessage));
 bot.on('callback_query', (msg) => MH.btnHandler(msg, sendMessage));

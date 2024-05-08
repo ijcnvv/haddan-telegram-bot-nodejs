@@ -46,40 +46,9 @@ const dbUpdateAnswerByChatId = (value, id) => {
   );
 };
 
-const dbGetIdsList = (chatId) => {
-  return connection
-    .execute(
-      'select `player_id` from `common` inner join `user` on `common`.`user_id` = `user`.`id` where `user`.`tg_id` = ? and `common`.`main_id` is NULL',
-      [chatId]
-    )
-    .then(([response]) => response);
-};
-
-const dbIsHashAllowed = (playerId) => {
-  return connection
-    .execute('select `player_id` from `common` where `player_id` = ? limit 1', [playerId])
-    .then(([response]) => response);
-};
-
-const dbAddChatIdToUser = (chatId, playerId) => {
-  return connection.execute(
-    'update `common` inner join `user` on `common`.`user_id` = `user`.`id` set `user`.`tg_id` = ? where `common`.`player_id` = ?',
-    [chatId, playerId]
-  );
-};
-
-const dbClearChatId = (chatId) => {
-  return connection
-    .execute('update `user` set `tg_id` = 0 where `tg_id` = ?', [chatId])
-    .then(([response]) => _.get(response, 'affectedRows', 0));
-};
 
 module.exports = {
   dbUpdateAnswer,
-  dbGetIdsList,
-  dbIsHashAllowed,
-  dbAddChatIdToUser,
-  dbClearChatId,
   dbIsCaptchaNotEmptyByPlayerId,
   dbIsCaptchaNotEmptyByChatId,
   dbUpdateAnswerByChatId,
